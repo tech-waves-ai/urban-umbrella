@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Vertical-to-Horizontal Scroll with Rain</title>
+  <meta name="description" content="Use vertical scroll to navigate horizontal color panels with rain and active highlight.">
+  <style>
+    /* RESET & BASE */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      overflow-x: hidden;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* HORIZONTAL PANELS */
+    .scroller {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      overflow-x: scroll;
+      overflow-y: hidden;
+      scrollbar-width: none;        /* Firefox */
+      -ms-overflow-style: none;     /* IE 10+ */
+    }
+    .scroller::-webkit-scrollbar {
+      display: none;                /* Chrome, Safari, Opera */
+    }
+    .panel {
+      flex: 0 0 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+    }
+    .panel.active {
+      transform: scale(1.05);
+      box-shadow: 0 0 40px rgba(0,0,0,0.3);
+    }
+    .panel h2 {
+      color: #fff;
+      font-size: 3rem;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    }
+
+    /* PANEL COLORS */
+    .panel:nth-child(1) { background: rgba(255,   0,   0, 0.6); }
+    .panel:nth-child(2) { background: rgba(255, 165,   0, 0.6); }
+    .panel:nth-child(3) { background: rgba(255, 255,   0, 0.6); }
+    .panel:nth-child(4) { background: rgba(  0, 128,   0, 0.6); }
+    .panel:nth-child(5) { background: rgba(  0,   0, 255, 0.6); }
+    .panel:nth-child(6) { background: rgba(128,   0, 128, 0.6); }
+
+    /* RAIN OVERLAY */
+    .rain {
+      pointer-events: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      z-index: 10;
+    }
+    .raindrop {
+      position: absolute;
+      top: -80px;
+      width: 2px;
+      height: 60px;
+      background: rgba(255,255,255,0.4);
+      animation: fall linear infinite;
+    }
+    @keyframes fall {
+      to { transform: translateY(110vh); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Horizontal Panels Container -->
+  <div class="scroller" id="scroller">
+    <div class="panel"><h2>Red</h2></div>
+    <div class="panel"><h2>Orange</h2></div>
+    <div class="panel"><h2>Yellow</h2></div>
+    <div class="panel"><h2>Green</h2></div>
+    <div class="panel"><h2>Blue</h2></div>
+    <div class="panel"><h2>Purple</h2></div>
+  </div>
+
+  <!-- Rain Overlay -->
+  <div class="rain" id="rain"></div>
+
+  <script>
+    const scroller = document.getElementById('scroller');
+    const panels   = document.querySelectorAll('.panel');
+    const rain     = document.getElementById('rain');
+    const dropCount = 120;
+
+    // 1. Set body height to enable vertical scroll (= total horizontal width)
+    function setBodyHeight() {
+      document.body.style.height = scroller.scrollWidth + 'px';
+    }
+
+    // 2. Map vertical scroll to horizontal translation
+    function onScroll() {
+      scroller.scrollLeft = window.scrollY;
+      highlightCenterPanel();
+    }
+
+    // 3. Highlight the panel centered in viewport
+    function highlightCenterPanel() {
+      const centerX = scroller.scrollLeft + window.innerWidth / 2;
+      panels.forEach(panel => {
+        const left  = panel.offsetLeft;
+        const right = left + panel.clientWidth;
+        if (centerX >= left && centerX < right) {
+          panel.classList.add('active');
+        } else {
+          panel.classList.remove('active');
+        }
+      });
+    }
+
+    // 4. Create raindrops
+    function createRain() {
+      for (let i = 0; i < dropCount; i++) {
+        const drop = document.createElement('div');
+        drop.className = 'raindrop';
+        drop.style.left = Math.random() * 100 + 'vw';
+        drop.style.animationDuration = (0.5 + Math.random() * 0.8) + 's';
+        drop.style.animationDelay = -Math.random() * 20 + 's';
+        rain.appendChild(drop);
+      }
+    }
+
+    // Initialize
+    window.addEventListener('load', () => {
+      setBodyHeight();
+      createRain();
+      highlightCenterPanel();
+    });
+    window.addEventListener('resize', setBodyHeight);
+    window.addEventListener('scroll', onScroll);
+  </script>
+</body>
+</html>
